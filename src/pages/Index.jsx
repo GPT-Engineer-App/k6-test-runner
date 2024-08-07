@@ -3,13 +3,31 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Paw, Heart, Info, Cat, Star } from "lucide-react";
+import { Paw, Heart, Info, Cat, Star, Instagram, Twitter, Facebook } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import confetti from 'canvas-confetti';
+
+const catNames = [
+  "Luna", "Milo", "Oliver", "Leo", "Bella", "Lucy", "Nala", "Kitty", "Loki", "Simba",
+  "Jack", "Lilly", "Charlie", "Willow", "Smokey", "Oreo", "Ziggy", "Tiger", "Jasper", "Oscar"
+];
+
+const catImages = [
+  "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+  "https://images.unsplash.com/photo-1519052537078-e6302a4968d4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+  "https://images.unsplash.com/photo-1495360010541-f48722b34f7d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+  "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+  "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+  "https://images.unsplash.com/photo-1561948955-570b270e7c36?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
+];
 
 const Index = () => {
   const [likeCount, setLikeCount] = useState(0);
   const [catFact, setCatFact] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [generatedName, setGeneratedName] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     fetch("https://catfact.ninja/fact")
@@ -20,10 +38,32 @@ const Index = () => {
       });
   }, []);
 
+  const generateCatName = () => {
+    const randomName = catNames[Math.floor(Math.random() * catNames.length)];
+    setGeneratedName(randomName);
+  };
+
+  const handleLike = () => {
+    setLikeCount(prev => prev + 1);
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-200 to-pink-200">
-      {/* Hero Section */}
-      <div className="relative h-[70vh] bg-cover bg-center" style={{backgroundImage: 'url("https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80")'}}>
+      {/* Hero Section with Parallax */}
+      <div className="relative h-[70vh] overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: 'url("https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80")',
+            transform: 'translateY(0)',
+            transition: 'transform 0.5s ease-out'
+          }}
+        />
         <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center">
           <motion.h1 
             initial={{ opacity: 0, y: -50 }}
@@ -139,14 +179,65 @@ const Index = () => {
           </AnimatePresence>
         </Tabs>
         
+        {/* Cat Name Generator */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center text-2xl">
+              <Cat className="mr-2 text-purple-500" /> Cat Name Generator
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center">
+            <Button onClick={generateCatName} className="mb-4 bg-purple-500 hover:bg-purple-600">
+              Generate Cat Name
+            </Button>
+            {generatedName && (
+              <motion.p
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-2xl font-bold text-purple-700"
+              >
+                {generatedName}
+              </motion.p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Cat Image Gallery */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center text-2xl">
+              <Cat className="mr-2 text-purple-500" /> Cat Gallery
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-4">
+              {catImages.map((image, index) => (
+                <img
+                  key={index}
+                  src={image}
+                  alt={`Cat ${index + 1}`}
+                  className="w-full h-40 object-cover rounded-lg cursor-pointer transition-transform hover:scale-105"
+                  onClick={() => setSelectedImage(image)}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+          <DialogContent className="max-w-3xl">
+            <img src={selectedImage} alt="Selected cat" className="w-full h-auto" />
+          </DialogContent>
+        </Dialog>
+
         <motion.div 
-          className="text-center"
+          className="text-center mb-12"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
           <Button 
-            onClick={() => setLikeCount(prev => prev + 1)}
+            onClick={handleLike}
             className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-3 rounded-full text-lg shadow-lg transition-all duration-300 transform hover:scale-105"
           >
             <Heart className="mr-2 h-5 w-5" /> Like Cats
@@ -162,6 +253,18 @@ const Index = () => {
           </motion.p>
         </motion.div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-purple-800 text-white py-8">
+        <div className="max-w-6xl mx-auto px-4 flex justify-between items-center">
+          <p>&copy; 2023 All About Cats. All rights reserved.</p>
+          <div className="flex space-x-4">
+            <a href="#" className="hover:text-pink-300 transition-colors"><Instagram /></a>
+            <a href="#" className="hover:text-pink-300 transition-colors"><Twitter /></a>
+            <a href="#" className="hover:text-pink-300 transition-colors"><Facebook /></a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
