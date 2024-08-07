@@ -3,11 +3,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Paw, Heart, Info, Cat, Star, Instagram, Twitter, Facebook, ArrowRight } from "lucide-react";
+import { Paw, Heart, Info, Cat, Star, Instagram, Twitter, Facebook, ArrowRight, Sparkles, Gift } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "@/components/ui/use-toast";
 import confetti from 'canvas-confetti';
 
 const catNames = [
@@ -24,6 +29,14 @@ const catImages = [
   "https://images.unsplash.com/photo-1561948955-570b270e7c36?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
 ];
 
+const catBreeds = [
+  { name: "Siamese", origin: "Thailand", temperament: "Intelligent, talkative, social" },
+  { name: "Persian", origin: "Iran", temperament: "Gentle, quiet, dignified" },
+  { name: "Maine Coon", origin: "United States", temperament: "Gentle, friendly, intelligent" },
+  { name: "Bengal", origin: "United States", temperament: "Active, energetic, playful" },
+  { name: "British Shorthair", origin: "United Kingdom", temperament: "Calm, patient, intelligent" },
+];
+
 const Index = () => {
   const [likeCount, setLikeCount] = useState(0);
   const [catFact, setCatFact] = useState("");
@@ -31,6 +44,9 @@ const Index = () => {
   const [generatedName, setGeneratedName] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const [scrollY, setScrollY] = useState(0);
+  const [customName, setCustomName] = useState("");
+  const [catAge, setCatAge] = useState(5);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     fetch("https://catfact.ninja/fact")
@@ -64,8 +80,24 @@ const Index = () => {
     });
   };
 
+  const handleCustomNameSubmit = (e) => {
+    e.preventDefault();
+    if (customName.trim()) {
+      toast({
+        title: "Custom Cat Name",
+        description: `Your cat's name is now: ${customName}`,
+      });
+      setCustomName("");
+    }
+  };
+
+  const handleDarkModeToggle = () => {
+    setIsDarkMode(!isDarkMode);
+    document.documentElement.classList.toggle('dark');
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-200 to-pink-200">
+    <div className={`min-h-screen ${isDarkMode ? 'dark bg-gray-900' : 'bg-gradient-to-b from-purple-200 to-pink-200'}`}>
       {/* Hero Section with Parallax */}
       <div className="relative h-[80vh] overflow-hidden">
         <motion.div 
@@ -105,6 +137,18 @@ const Index = () => {
             </Button>
           </motion.div>
         </div>
+      </div>
+
+      {/* Dark Mode Toggle */}
+      <div className="fixed top-4 right-4 z-50">
+        <Switch
+          checked={isDarkMode}
+          onCheckedChange={handleDarkModeToggle}
+          className="data-[state=checked]:bg-purple-600"
+        />
+        <span className="ml-2 text-sm font-medium text-gray-900 dark:text-white">
+          {isDarkMode ? 'Dark' : 'Light'} Mode
+        </span>
       </div>
       
       <div className="max-w-6xl mx-auto px-4 py-16">
@@ -163,7 +207,7 @@ const Index = () => {
                           initial={{ opacity: 0, x: -50 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.1 }}
-                          className="flex items-center bg-purple-100 p-3 rounded-lg shadow-sm"
+                          className="flex items-center bg-purple-100 dark:bg-purple-900 p-3 rounded-lg shadow-sm"
                         >
                           <Paw className="mr-3 h-5 w-5 text-purple-500" />
                           <span className="text-lg">{item}</span>
@@ -188,17 +232,21 @@ const Index = () => {
                     <CardDescription>Some well-known cat breeds around the world</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ul className="grid grid-cols-2 gap-4">
-                      {["Siamese", "Persian", "Maine Coon", "Bengal", "British Shorthair"].map((breed, index) => (
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {catBreeds.map((breed, index) => (
                         <motion.li 
                           key={index}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.1 }}
-                          className="p-4 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg shadow-md flex items-center justify-between"
+                          className="p-4 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 rounded-lg shadow-md"
                         >
-                          <span className="text-lg font-semibold">{breed}</span>
-                          <Star className="h-5 w-5 text-yellow-500" />
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-lg font-semibold">{breed.name}</span>
+                            <Star className="h-5 w-5 text-yellow-500" />
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">Origin: {breed.origin}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">Temperament: {breed.temperament}</p>
                         </motion.li>
                       ))}
                     </ul>
@@ -244,6 +292,54 @@ const Index = () => {
                 </motion.div>
               )}
             </AnimatePresence>
+          </CardContent>
+        </Card>
+
+        {/* Custom Cat Name Form */}
+        <Card className="mb-8 overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+            <CardTitle className="flex items-center text-2xl">
+              <Sparkles className="mr-2" /> Custom Cat Name
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <form onSubmit={handleCustomNameSubmit} className="flex flex-col items-center">
+              <Label htmlFor="custom-name" className="mb-2">Enter your cat's name:</Label>
+              <Input
+                id="custom-name"
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                className="mb-4 w-full max-w-xs"
+                placeholder="e.g. Whiskers"
+              />
+              <Button type="submit" className="bg-pink-500 hover:bg-pink-600">
+                Set Custom Name
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Cat Age Slider */}
+        <Card className="mb-8 overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+            <CardTitle className="flex items-center text-2xl">
+              <Gift className="mr-2" /> Cat Age Calculator
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <Label htmlFor="cat-age" className="mb-2 block">Adjust your cat's age:</Label>
+            <Slider
+              id="cat-age"
+              min={0}
+              max={20}
+              step={1}
+              value={[catAge]}
+              onValueChange={(value) => setCatAge(value[0])}
+              className="mb-4"
+            />
+            <p className="text-center text-lg font-semibold">
+              Your cat is {catAge} years old, which is approximately {Math.round(catAge * 4)} in human years!
+            </p>
           </CardContent>
         </Card>
 
